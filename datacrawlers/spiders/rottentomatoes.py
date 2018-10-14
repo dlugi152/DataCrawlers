@@ -27,32 +27,33 @@ class RottentomatoesSpider(scrapy.Spider):
 
     def parse_page(self, response):
         jsonresponse = json.loads(response.body_as_unicode())
+        movie_links = ["https://www.rottentomatoes.com" + product["url"] for product in jsonresponse["results"]]
+
+        requests = [Request(url=URL, callback=self.parse_movie) for URL in movie_links]
+        return requests
+
+    def parse_movie(self, response):
+        title = response.css('#movie-title *::text').extract_first().lstrip()
+        year = response.css('.year *::text').extract_first()
         with open('dataRottenCritic.json', 'a') as outfileRC:
             with open('dataRottenFans.json', 'a') as outfileRF:
-                for product in jsonresponse["results"]:
-                    rat_rc = -1
-                    rat_rf = -1
-                    title = ""
-                    try:
-                        rat_rc = product["tomatoScore"]
-                        rat_rf = product["popcornScore"]
-                        title = product["title"]
-                    except Exception:
-                        pass
-                    try:
-                        if rat_rc != -1 and title != "":
-                            my_json = "{'rating':'" + str(rat_rc) + "','title':'" + str(title) + "'},\n"
-                            self.log(my_json)
-                            outfileRC.write(my_json)
-                    except Exception:
-                        pass
-                    try:
-                        if rat_rf != -1 and title != "":
-                            my_json = "{'rating':'" + str(rat_rf) + "','title':'" + str(title) + "'},\n"
-                            self.log(my_json)
-                            outfileRF.write(my_json)
-                    except Exception:
-                        pass
+                try:
+                    rat_rc = response.css('.critic-score a .meter-value span *::text').extract_first()
+                    rc_votes = response.css('#scoreStats div')[1].css('span *::text')[1].extract().replace(',', '')
+                    my_json = "{\"rating\":\"" + str(rat_rc) + "\",\"title\":\"" + str(title) + "\",\"year\":\"" + str(year) + "\",\"votes\":\"" + str(rc_votes) + "\"}\n"
+                    self.log(my_json)
+                    outfileRC.write(my_json)
+                except Exception:
+                    pass
+                try:
+                    rat_rf = response.css('.audience-score a div .media-body div span *::text').extract_first().replace('%', '')
+                    rf_votes = response.css('.audience-info div *::text')[5].extract().replace(',', '').lstrip()
+                    my_json = "{\"rating\":\"" + str(rat_rf) + "\",\"title\":\"" + str(title) + "\",\"year\":\"" + str(
+                        year) + "\",\"votes\":\"" + str(rf_votes) + "\"}\n"
+                    self.log(my_json)
+                    outfileRF.write(my_json)
+                except Exception:
+                    pass
                 pass
             pass
         pass
