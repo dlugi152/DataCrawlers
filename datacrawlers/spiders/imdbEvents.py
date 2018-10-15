@@ -52,18 +52,21 @@ class ImdbeventsSpider(scrapy.Spider):
                                 './/div[@class="event-widgets__winner-badge"]').extract_first() is not None:
                             winner = True
                         if imdb_id[:2] == 'tt':
-                            my_json = "{'movie':'" + imdb_id + "','awardTitle':'" + title + "','year':'" + str(
-                                year) + "'," \
-                                        "'eventId':'" + imdb_event_id + "','category':'" + cat_name + "','winner':'" + str(
-                                winner) \
-                                      + "'},\n"
+                            my_json = "{\"movie\":\"" + imdb_id + "\",\"awardTitle\":\"" + title + "\",\"year\":\"" + str(
+                                year) + "\",\"eventId\":\"" + imdb_event_id + "\",\"category\":\"" + cat_name + "\",\"winner\":\"" + str(
+                                winner) + "\"}\n"
                             self.log(my_json)
                             outfileM.write(my_json)
                         if imdb_id[:2] == 'nm':
-                            my_json = "{'name':'" + imdb_id + "','awardTitle':'" + title + "','year':'" + str(
-                                year) + "'," \
-                                        "'eventId':'" + imdb_event_id + "','category':'" + cat_name + "','winner':'" + \
-                                      str(winner) + "'},\n"
+                            try:
+                                movie_id = singleTitle.css(
+                                    '.event-widgets__secondary-nominees span span a *::attr(href)').extract_first().split(
+                                    '/')[2]
+                            except Exception:
+                                movie_id = ""
+                            my_json = "{\"name\":\"" + imdb_id + "\",\"awardTitle\":\"" + title + "\",\"year\":\"" + str(
+                                year) + "\",\"eventId\":\"" + imdb_event_id + "\",\"category\":\"" + cat_name + "\",\"winner\":\"" + str(
+                                winner) + "\",\"movie_id\":\"" + str(movie_id) + "\"}\n"
                             self.log(my_json)
                             outfileA.write(my_json)
             pass
