@@ -29,6 +29,7 @@ class ImdbeventsSpider(scrapy.Spider):
 
     def parse_page(self, response):
         title = response.xpath('//div[@class="event-header__title"]/h1/text()').extract_first()
+        title = title.replace("\"", "\\\"")
         imdb_event_id = response.url.split('/')[5]
         year = response.xpath('//div[@class="event-year-header__year"]/text()').extract_first()[:4]
         with open('dataImdbMovieEvents.json', 'a') as outfileM:
@@ -38,6 +39,7 @@ class ImdbeventsSpider(scrapy.Spider):
                         './/div[@class="event-widgets__award-category-name"]/text()').extract_first()
                     if cat_name is None:
                         cat_name = ""
+                    cat_name = cat_name.replace("\"", "\\\"")
                     for singleTitle in product.xpath('.//div[@class="event-widgets__nomination-details"]'):
                         imdb_id = ""
                         try:
