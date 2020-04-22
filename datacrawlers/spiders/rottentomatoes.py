@@ -33,27 +33,27 @@ class RottentomatoesSpider(scrapy.Spider):
         return requests
 
     def parse_movie(self, response):
-        title = response.css('#movie-title *::text').extract_first().lstrip()
-        year = response.css('.year *::text').extract_first()
+        title = response.css('.mop-ratings-wrap__title--top *::text').extract_first().lstrip()
+        year = response.css('time::text').extract_first()[-4:]
         with open('dataRottenCritic.json', 'a') as outfileRC:
             with open('dataRottenFans.json', 'a') as outfileRF:
                 try:
-                    rat_rc = response.css('.critic-score a .meter-value span *::text').extract_first()
-                    rc_votes = response.css('#scoreStats div')[1].css('span *::text')[1].extract().replace(',', '')
+                    rat_rc = response.css('.mop-ratings-wrap__percentage *::text').extract_first().replace('%', '').strip()
+                    rc_votes = response.css('.mop-ratings-wrap__review-totals small *::text')[0].extract().replace(',', '').strip()
                     my_json = "{\"rating\":\"" + str(rat_rc) + "\",\"title\":\"" + str(title) + "\",\"year\":\"" + str(year) + "\",\"votes\":\"" + str(rc_votes) + "\"}\n"
                     self.log(my_json)
                     outfileRC.write(my_json)
-                except Exception:
-                    pass
+                except Exception as e:
+                    print(e)
                 try:
-                    rat_rf = response.css('.audience-score a div .media-body div span *::text').extract_first().replace('%', '')
-                    rf_votes = response.css('.audience-info div *::text')[5].extract().replace(',', '').lstrip()
+                    rat_rf = response.css('.mop-ratings-wrap__percentage *::text')[1].extract().replace('%', '').strip()
+                    rf_votes = response.css('.mop-ratings-wrap__review-totals strong *::text')[1].extract().split(':')[1].replace(',', '').strip()
                     my_json = "{\"rating\":\"" + str(rat_rf) + "\",\"title\":\"" + str(title) + "\",\"year\":\"" + str(
                         year) + "\",\"votes\":\"" + str(rf_votes) + "\"}\n"
                     self.log(my_json)
                     outfileRF.write(my_json)
-                except Exception:
-                    pass
+                except Exception as e:
+                    print(e)
                 pass
             pass
         pass

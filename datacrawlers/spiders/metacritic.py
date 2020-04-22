@@ -28,7 +28,7 @@ class MetacriticSpider(scrapy.Spider):
 
     def parse_list(self, response):
         movies_links = ["https://www.metacritic.com" + addr + "/details" for addr in
-                        response.css('.product').css('.basic_stat').xpath('@href').extract()]
+                        response.css('.title').xpath('@href').extract()]
         requests = [Request(url=URL, callback=self.parse_movie) for URL in movies_links]
         return requests
 

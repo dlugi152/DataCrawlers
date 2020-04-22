@@ -18,19 +18,12 @@ def dbconnector(filename='datacrawlers/database.ini', section='postgresql'):
     else:
         raise Exception('Section {0} not found in the {1} file'.format(section, filename))
 
-    return db
+    # connect to the PostgreSQL server
+    return psycopg2.connect(**db)
 
 
-def execute(command):
-    """ Connect to the PostgreSQL database server """
-    conn = None
+def execute(conn, command):
     try:
-        # read connection parameters
-        params = dbconnector()
-
-        # connect to the PostgreSQL server
-        conn = psycopg2.connect(**params)
-
         # create a cursor
         cur = conn.cursor()
 
@@ -38,36 +31,26 @@ def execute(command):
         cur.execute(command)
         conn.commit()
         results = cur.fetchall()
+        cur.close()
 
         # close the communication with the PostgreSQL
         return results
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        if 'narusza klucz obcy' not in str(error) and 'no results to fetch' != str(error):
+            print(error)
+        conn.rollback()
         return None
-    finally:
-        if conn is not None:
-            conn.close()
 
 
-def select():
-    """ Connect to the PostgreSQL database server """
-    conn = None
+def select(conn):
     try:
-        # read connection parameters
-        params = dbconnector()
-
-        # connect to the PostgreSQL server
-        conn = psycopg2.connect(**params)
 
         # create a cursor
         cur = conn.cursor()
 
-        cur.execute("SELECT * FROM public.\"Movie\"")
+        cur.execute("SELECT * FROM public.\"Movie\" where \"ReleaseDate\"::text like '%-01-01'")
 
         # retrieve the records from the database
         return cur.fetchall()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
-    finally:
-        if conn is not None:
-            conn.close()

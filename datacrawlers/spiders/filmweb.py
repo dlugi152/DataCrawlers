@@ -6,11 +6,11 @@ from scrapy.http.request import Request
 class FilmwebSpider(scrapy.Spider):
     name = 'filmweb'
     allowed_domains = ['filmweb.pl']
-    start_urls = ['https://www.filmweb.pl/films/search?endRate=10&endYear=1888&orderBy=popularity&descending=true&startCount=500&startRate=1&startYear=1888']
+    start_urls = ['https://www.filmweb.pl/films/search?endRate=10&endYear=1888&orderBy=popularity&descending=true&startCount=300&startRate=1&startYear=1888']
 
     def parse(self, response):
-        years = list(range(1988, 2019))
-        year_links = ["https://www.filmweb.pl/films/search?endYear=" + str(year) + "&orderBy=popularity&startRate=1&endRate=10&descending=true&startCount=500&startYear=" + str(year) for year in years]
+        years = list(range(1988, 2020))
+        year_links = ["https://www.filmweb.pl/films/search?endYear=" + str(year) + "&orderBy=popularity&startRate=1&endRate=10&descending=true&startCount=300&startYear=" + str(year) for year in years]
         requests = [Request(url=URL, callback=self.parse_year) for URL in year_links]
         return requests
 
