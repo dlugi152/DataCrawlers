@@ -7,24 +7,27 @@ class ImdbeventsSpider(scrapy.Spider):
     name = 'imdbEvents'
     allowed_domains = ['imdb.com']
     start_urls = ['https://www.imdb.com/event/all/']
+    http_user = 'user'
+    http_pass = 'userpass'
 
     def start_requests(self):
         for url in self.start_urls:
             yield SplashRequest(url=url, callback=self.parse, endpoint='render.html',
-                                args={'wait': 1.0})
+                                args={'wait': 1.0, 'viewport': '1024x2480', 'images': 0, 'resource_timeout': 10})
 
     def parse(self, response):
         events = response.xpath('//ul[@class="event-list__events"]/li/a/@href').extract()
-        requests = [SplashRequest(url=event, callback=self.parse_event, args={'wait': 1.0}) for event
-                    in events]
+        requests = [SplashRequest(url=event, callback=self.parse_event,
+                                  args={'wait': 1.0, 'viewport': '1024x2480', 'images': 0, 'resource_timeout': 10})
+                    for event in events]
         return requests
 
     def parse_event(self, response):
         events_year = response.xpath('//div[@class="event-history-widget__years"]').xpath(
             '//div[@class="event-history-widget__years-row"]/span/a/@href').extract()
-        requests = [SplashRequest(url="https://www.imdb.com/" + year, callback=self.parse_page, args={'wait': 1.0}) for
-                    year
-                    in events_year]
+        requests = [SplashRequest(url="https://www.imdb.com/" + year, callback=self.parse_page,
+                                  args={'wait': 1.0, 'viewport': '1024x2480', 'images': 0, 'resource_timeout': 10})
+                    for year in events_year]
         return requests
 
     def parse_page(self, response):
@@ -32,8 +35,8 @@ class ImdbeventsSpider(scrapy.Spider):
         title = title.replace("\"", "\\\"")
         imdb_event_id = response.url.split('/')[5]
         year = response.xpath('//div[@class="event-year-header__year"]/text()').extract_first()[:4]
-        with open('dataImdbMovieEvents.json', 'a') as outfileM:
-            with open('dataImdbActorEvents.json', 'a') as outfileA:
+        with open('dataImdbMovieEvents.json', 'a', encoding="utf-8") as outfileM:
+            with open('dataImdbActorEvents.json', 'a', encoding="utf-8") as outfileA:
                 for award in response.xpath('//div[@class="event-widgets__award"]'):
                     award_name = award.xpath('.//div[@class="event-widgets__award-name"]/text()').extract_first()
                     award_name = award_name.replace("\"", "\\\"")

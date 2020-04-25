@@ -48,7 +48,7 @@ def select(conn):
         # create a cursor
         cur = conn.cursor()
 
-        cur.execute("SELECT * FROM public.\"Movie\" where \"ReleaseDate\"::text like '%-01-01'")
+        cur.execute("SELECT * FROM public.\"Movie\" limit 1")
 
         # retrieve the records from the database
         return cur.fetchall()
